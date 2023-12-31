@@ -12,3 +12,8 @@ in one terminal, and
 python client.py
 ```
 in two other terminals. Then play with one player using one terminal.  
+
+```
+python rng_client.py
+```
+can be run to use an automated bot that randomly picks an available option instead of multiple players with human inputs.
