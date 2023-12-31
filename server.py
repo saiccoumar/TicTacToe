@@ -46,7 +46,6 @@ class Server:
             print("Move made.")
             try:
                 print("pn:" + str(player_number))
-                print("index:" + str(self.current_player_index))
                 data = client_socket.recv(1024).decode()
                 if not data:
                     break
