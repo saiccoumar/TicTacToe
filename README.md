@@ -13,6 +13,7 @@ python client.py
 ```
 in two other terminals. Then play with one player using one terminal.  
 
+Alternatively,
 ```
 python rng_client.py
 ```
