@@ -148,3 +148,71 @@ def make_decision(board):
         return random.choice(open_positions)
 ```
 This approach has a very low "intelligence" but serves as a good control. It is possible to win by making random choices but with any more intelligence, an AI will be able to consistently beat the random choice agent. If the random choice agent is winning against another AI, then that AI is likely bugged and needs to be reworked. 
+
+Let's add some degree of intelligence. The most basic AIs, rule-based agents, use pre-determined policies defined by domain experts to make generalized selections. Since tic tac toe is a "solved game", and any human with a brain can figure out a good strategy, making a viable rule-based AI is pretty easy. 
+
+#### Center Agent
+The first rule I tried was always playing the center square every single time. 
+```
+def make_decision(board, player_sign):
+        # Check for all open positions (valid choices)
+        open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]   
+        # If center is empty pick     
+        if board[4] == " ":
+            print("Pick Center")
+            return 5
+
+        print("Pick random")
+        return random.choice(open_positions)
+```
+If the rule cannot be met, we default to random choices. Center choice wins pretty often against RNG client, but can still lose. It essentially aims to subset the game state space to all boards where the bot has played the center, which generally has a higher win rate than the entire set of all game states. This rule is pretty weak and a smart agent could still outmaneuver this pretty easily.
+
+#### Corner Agent
+```
+def make_decision(board, player_sign):
+        opp_sign = "O" if player_sign == "X" else "X"
+        # Check for all open positions (valid choices)
+        open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
+
+        for i in range(0,9,2):
+            if board[i] == " " and board[8-i] == opp_sign:
+                return i+1
+        # If corners are empty pick a corner
+        corners = [i+1 for i in range(0,9,2)] 
+        if board[0] == " " or board[2] == " " or board[6] == " " or board[8] == " ":
+            print("Pick Corner")
+            return random.choice(corners) 
+
+        print("Pick random")
+        return random.choice(open_positions)
+```
+This agent aims to take corners opposite to the opponent's corners, and take any other corners that are available. This aims to create forks, where a player has 2 winning options and the opponent can only block one leading to a win. The corner agent can win often, but is vulnerable to the possibility that an agent picks the middle three positions horizontally or vertically because the corner agent will pick corners for the first 2-4 rounds. When corner agent wins, it wins by a blowout but when it loses it loses hard. 
+
+#### One Step Agent
+```
+def make_decision(board, player_sign):
+        # Check for all open positions (valid choices)
+        open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
+        
+        # Look for wins
+        for i in open_positions:
+            board_step = board.copy()
+            board_step[i-1] = player_sign
+            if TicTacToeGame.check_winner(board_step, player_sign):
+                print("Win detected")
+                return i
+            
+        # Prevent losses
+        for i in open_positions:
+            board_step = board.copy()
+            opp_sign = "O" if player_sign == "X" else "X"
+
+            board_step[i-1] = opp_sign\
+            if TicTacToeGame.check_winner(board_step, opp_sign):
+                print("Stop opponent win")
+                return i 
+
+        print("Pick random")
+        return random.choice(open_positions)
+```
+One Step Agent is the first agent that actually tries to look for opportunities to win and prevent a loss. It goes through all the possible turns that the player can make on the current board and returns a position if it can result in an immediate win. Similarly it goes through all possible turns that the opponent can make and returns a position if the opponent can result in an immediate win, thereby preventing that win. Since it goes "one step" into the future to evaluate moves, I named it the One Step Agent. One step works REALLY well. RNG struggles against it and even later algorithms that we'll cover struggle. One-step unequivocally has the best foresight of what will happen in exactly one move - even better than later algorithms we'll discuss. Unfortunately if an opponent sets up a fork more than one step into the future, One-step cannot detect it and can still lose. We'll address this with the MCTS and minimax algorithms.   
