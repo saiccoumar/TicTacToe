@@ -30,8 +30,8 @@ class State():
     def get_UBT(self, C, N):
         if self.n == 0:
             # Handling the case where n_j is zero to avoid division by zero
-            return float('inf')
-        log_argument = math.log(N / self.n) if N > 0 and self.n > 0 else 0
+            return float("inf")
+        log_argument = math.log(N) / self.n if N > 0 and self.n > 0 else 0
         return self.V / self.n + C * math.sqrt(log_argument)
 
 class MCTS():
@@ -58,15 +58,6 @@ class MCTS():
             # Select Node
             selected_state = self.select(root)
             self.cprint(f"selected node: {str(selected_state)}")
-            # Case when root's childrens become terminal, and the root is terminal. 
-            # At this point we end iterations because we've exhausted all possible outcomes. 
-            # Ex. 
-                # ['X', 'O', 'X',
-                # 'O', '  ', 'O',
-                # '  ', 'X', 'X']
-            # This will be terminal after 2 iterations with 2 terminal children.
-            if (selected_state == None):
-                break
             # Expand
             expanded_state = self.expand(selected_state)
             self.cprint("Expanded")
@@ -88,15 +79,13 @@ class MCTS():
         if not state.expanded:
             return state
         else:
-            # available non-terminal children
-            children = [temp_state for temp_state in state.children.values() if not temp_state.terminal]
-            # If a state's children are all terminal, then the state itself is terminal, so go back one 
-            if len(children) == 0:
-                state.terminal = True
-                return state.parent
-            
-            child_state = max(children, key = lambda x: x.get_UBT(self.C, self.N))
-            return self.select(child_state)
+            non_terminal_children = [child for child in state.children.values() if not child.terminal]
+            if not non_terminal_children:
+                return state
+
+            best_child = max(non_terminal_children, key=lambda x: x.get_UBT(self.C, self.N))
+            return self.select(best_child)
+
     
     def expand(self, state):
         if not (state.expanded):
@@ -113,8 +102,8 @@ class MCTS():
             self.cprint(f"New State:{str(child_state)}")
             return child_state
         else:
-            self.cprint("State expanded. Selecting random.")
-            return random.choice(list(state.children.values()))
+            self.cprint("State expanded. Selecting state.")
+            return state
 
 
     def rollout(self, state):
@@ -128,7 +117,7 @@ class MCTS():
         if TicTacToeGame.check_winner(simulated_board, self.agent_sign):
             return 10
         elif TicTacToeGame.check_draw(simulated_board):
-            return 0
+            return 5
         elif TicTacToeGame.check_loser(simulated_board, self.agent_sign):
             return -10
         else:
@@ -232,7 +221,7 @@ class MCTSAgent:
     # Logic to choose which position to pick
     @staticmethod
     def make_decision(board, player_sign):
-        return MCTS(board, player_sign, C=2, iterations = 10000).search()
+        return MCTS(board, player_sign, C=0.7, iterations = 100000, flag=False).search()
         
 
 if __name__ == "__main__":

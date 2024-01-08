@@ -1,11 +1,33 @@
-# rng_client.py
-
+import torch
+from train_win_nn import TicTacToeModel
+from train_position_nn import convert_to_numeric
+import pandas as pd
 import socket
 import json
 import random 
-from tictactoe import TicTacToeGame
+from combined_rules_agent import CombinedRulesAgent
+from one_step_agent import OneStepAgent
+from minimax_agent import MinimaxAgent
 
-class CombinedRulesAgent:
+class NeuralNetworkPredictor():
+    # Input size and output size were checked via print statements during train
+    def __init__(self, input_size = 9) -> None:
+        self.model = TicTacToeModel(input_size)
+        self.model.load_state_dict(torch.load('tic_tac_toe_model_win.pth'))
+        self.model.eval()
+    
+    def predict(self, new_board_state):
+        with torch.no_grad():
+            # Convert new board to numeric format
+            numeric_board = convert_to_numeric(new_board_state)
+            new_board_tensor = torch.tensor(numeric_board, dtype=torch.float32)
+            
+            # Make prediction
+            prediction = self.model(new_board_tensor)
+            return prediction
+            
+
+class NNWinPredictorAgent:
     def __init__(self):
         # initialize cliennt socket with localhost ip address on port 5555
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -17,7 +39,7 @@ class CombinedRulesAgent:
         self.player_sign = "X"
         if self.player_number != 1:
             self.player_sign = "O"
-        print("COMBINED RULES AGENT")
+        print("PREDICT WIN AGENT")
         print(f"You are Player {self.player_number}")
         print(f"Your sign is {self.player_sign}")
 
@@ -37,7 +59,7 @@ class CombinedRulesAgent:
 
 
     # Logic to play the game 
-    def play_game(self):
+    def play_game(self):     
         while True:
             game_state = self.receive_data()
             # Wait for start code
@@ -51,7 +73,8 @@ class CombinedRulesAgent:
 
                 if game_state['current_player'] == f"{self.player_sign}":
                     # instead of getting the position from the player, let the program decide what position to pick
-                    position = self.make_decision(game_state['board'], self.player_sign)
+                    nn_predictor = NeuralNetworkPredictor() 
+                    position = self.make_decision(game_state['board'], self.player_sign, nn_predictor)
                     print(f"Position: {position}")
                     self.send_message(str(position))
                 else:
@@ -62,7 +85,7 @@ class CombinedRulesAgent:
                 continue
             # Break when the game is won, drawn, or lost
             elif isinstance(game_state, str) and ("WIN" in game_state):
-                print("Combined Rules Agent won!")
+                print("Predict Win Agent won!")
                 final_board = json.loads(game_state.split(":")[1])
                 self.print_board(final_board)
                 break
@@ -72,7 +95,7 @@ class CombinedRulesAgent:
                 self.print_board(final_board)
                 break
             elif isinstance(game_state, str) and ("LOSS" in game_state):
-                print("Combined Rules Agent lost.")
+                print("Predict Win Agent lost.")
                 final_board = json.loads(game_state.split(":")[1])
                 self.print_board(final_board)
                 break
@@ -92,69 +115,31 @@ class CombinedRulesAgent:
 
     # Logic to choose which position to pick
     @staticmethod
-    def make_decision(board, player_sign):
+    def make_decision(board, player_sign, nn_predictor):
         # Check for all open positions (valid choices)
         open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
-        opp_sign = "O" if player_sign == "X" else "X"
-        # Look for forks
-        # If center is empty pick     
-        if board.count(" ") == 8:
-            print("Pick Center")
-            return 5
-        
+        if len(open_positions) > 4:
+            # return OneStepAgent.make_decision(board, player_sign)
+            # return CombinedRulesAgent.make_decision(board, player_sign)
+            return MinimaxAgent.make_decision(board, player_sign)
+
+        predicted_scores = {}
         for i in open_positions:
-            board_step = board.copy()
-            board_step[i-1] = player_sign
+            future_board = board.copy()
+            future_board[i-1] = player_sign
+            predicted_scores[i] = nn_predictor.predict(future_board) 
+        choices = [key for key, value in predicted_scores.items() if value == 1]
+        print("Endgame Detected.")
 
-            # Check if the current move creates a fork
-            fork_created = False
-            for j in open_positions:
-                if j != i:
-                    board_step_fork = board_step.copy()
-                    board_step_fork[j-1] = opp_sign
+        if len(predicted_scores.items())>0:
+            print(predicted_scores)
+            return max(predicted_scores, key=predicted_scores.get)
 
-                    if TicTacToeGame.check_winner(board_step_fork, player_sign):
-                        fork_created = True
-                        break
-
-            if fork_created:
-                return i
-
-        # Look for wins
-        for i in open_positions:
-            board_step = board.copy()
-            board_step[i-1] = player_sign
-            # print("Future board\n-------")
-            # Corner_Agent.print_board(board_step)
-            if TicTacToeGame.check_winner(board_step, player_sign):
-                print("Win detected")
-                return i
-            
-        # Prevent losses
-        for i in open_positions:
-            board_step = board.copy()
-            board_step[i-1] = opp_sign
-            # print("Future board\n-------")
-            # Corner_Agent.print_board(board_step)
-            if TicTacToeGame.check_winner(board_step, opp_sign):
-                print("Stop opponent win")
-                return i 
-            
-        
-        # If corners are empty pick a corner
-        corners = [i+1 for i in range(0,9,2)] 
-        if board[0] == " " or board[2] == " " or board[6] == " " or board[8] == " ":
-            print("Pick Corner")
-            return random.choice(corners) 
-        
-        
-        
-
-        print("Pick random")
+        print("NN failed to yield a valid choice")
         return random.choice(open_positions)
 
 if __name__ == "__main__":
     # Create a AI client that plays the game using RNG logic. When the game is over, close it's connection to the port.
-    client = CombinedRulesAgent()
+    client = NNWinPredictorAgent()
     client.play_game()
     client.close_connection()
