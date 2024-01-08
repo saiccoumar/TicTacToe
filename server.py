@@ -63,16 +63,17 @@ class Server:
                     position = int(data)
                     if 1 <= position <= 9 and self.game.make_move(position):
                         self.game.print_board()
-                        if self.game.check_winner():
-                            client_socket.send("WIN".encode())
+                        board = self.game.board.copy() 
+                        if self.game.check_winner(self.game.board, self.game.current_player):
+                            client_socket.send(f"WIN:{json.dumps(board)}".encode())
                             loser_socket = self.players[(self.current_player_index + 1) % 2]
-                            loser_socket.send("LOSS".encode())
+                            loser_socket.send(f"LOSS:{json.dumps(board)}".encode())
                             # End while loop when game is over
                             break
                         elif " " not in self.game.board:
-                            client_socket.send("DRAW".encode())
+                            client_socket.send(f"DRAW:{json.dumps(board)}".encode())
                             loser_socket = self.players[(self.current_player_index + 1) % 2]
-                            loser_socket.send("DRAW".encode())
+                            loser_socket.send(f"DRAW:{json.dumps(board)}".encode())
                             # End while loop when game is over
                             break
                     # If the game has not ended, and the move is valid, swap players and send the new game state to BOTH players 
@@ -96,6 +97,14 @@ class Server:
                 print(e)
                 break
         
+        # Decrement the connected clients counter when a client disconnects
+        self.num_players_connected -= 1
+
+        # Check if all clients have disconnected and exit the server if so
+        if self.num_players_connected == 0:
+            print("All clients disconnected. Closing the server.")
+            exit()
+
         # Close connection to client when the game is over
         print(f"Connection from {client_socket.getpeername()} has been closed.")
         client_socket.close()
@@ -107,8 +116,10 @@ class Server:
             print(f"Connection from {addr} has been established.")
             # Add clients to players array for reference later
             self.players.append(client_socket)
-            # Start a new threat for each client
+            # Start a new thread for each client
             threading.Thread(target=self.handle_client, args=(client_socket,)).start()
+
+            
 
 if __name__ == "__main__":
     # Start server and accept connections on a separate thread

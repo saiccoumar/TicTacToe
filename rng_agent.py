@@ -1,9 +1,10 @@
-# client.py
+# rng_client.py
 
 import socket
 import json
+import random 
 
-class Client:
+class RNGAGent:
     def __init__(self):
         # initialize cliennt socket with localhost ip address on port 5555
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,6 +16,7 @@ class Client:
         self.player_sign = "X"
         if self.player_number != 1:
             self.player_sign = "O"
+        print("RNG AGENT")
         print(f"You are Player {self.player_number}")
         print(f"Your sign is {self.player_sign}")
 
@@ -29,6 +31,9 @@ class Client:
             return json.loads(data)
         except json.JSONDecodeError:
             return data
+        
+    
+
 
     # Logic to play the game 
     def play_game(self):
@@ -44,8 +49,10 @@ class Client:
                 print(f"Current Player: {game_state['current_player']}")
 
                 if game_state['current_player'] == f"{self.player_sign}":
-                    position = input("Enter your move (1-9): ")
-                    self.send_message(position)
+                    # instead of getting the position from the player, let the program decide what position to pick
+                    position = self.make_decision(game_state['board'])
+                    print(f"Position: {position}")
+                    self.send_message(str(position))
                 else:
                     print("Waiting for the other player's move...")
             # If the move is invalid, the player is prompted again
@@ -54,7 +61,7 @@ class Client:
                 continue
             # Break when the game is won, drawn, or lost
             elif isinstance(game_state, str) and ("WIN" in game_state):
-                print("Congratulations! You won!")
+                print("RNG Agent won!")
                 final_board = json.loads(game_state.split(":")[1])
                 self.print_board(final_board)
                 break
@@ -64,7 +71,7 @@ class Client:
                 self.print_board(final_board)
                 break
             elif isinstance(game_state, str) and ("LOSS" in game_state):
-                print("Sorry, you lost.")
+                print("RNG Agent lost.")
                 final_board = json.loads(game_state.split(":")[1])
                 self.print_board(final_board)
                 break
@@ -82,8 +89,20 @@ class Client:
         print("---------")
         print(f"{board[6]} | {board[7]} | {board[8]}")
 
+    # Logic to choose which position to pick
+    @staticmethod
+    def make_decision(board):
+        # Check for all open positions (valid choices)
+        open_positions = []
+        for i in range(0,len(board)):
+            if board[i] == " ":
+                # Board is indexed 1-9, who thought that would be a good idea...
+                open_positions.append(i+1)
+        # Pick a random spot
+        return random.choice(open_positions)
+
 if __name__ == "__main__":
-    # Create a client that plays the game. When the game is over, close it's connection to the port.
-    client = Client()
+    # Create a AI client that plays the game using RNG logic. When the game is over, close it's connection to the port.
+    client = RNGAGent()
     client.play_game()
     client.close_connection()

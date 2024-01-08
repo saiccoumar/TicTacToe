@@ -1,0 +1,13 @@
+Fullstack academy (Best explanation)
+https://www.youtube.com/watch?v=Fbs4lnGLS8M
+
+John Levine
+https://www.youtube.com/watch?v=UXW2yZndl7U
+
+Implementation built on John Levine (wrong)
+https://github.com/maksimKorzh/tictactoe-mtcs/blob/master/src/tictactoe/mcts.py#L69
+
+MCTS Visualizer:
+https://github.com/vgarciasc/mcts-viz?tab=readme-ov-file
+
+https://dke.maastrichtuniversity.nl/c.sironi/wp-content/uploads/2018/09/CGW17-OnlineParamTuningForMCTSinGGP.pdf
