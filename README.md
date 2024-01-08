@@ -130,3 +130,19 @@ if __name__ == "__main__":
 The client and every agent has this setup. The client waits for the game state or status codes from the server and acts when it's their turn. Each AI agent uses a different method for make_decision while client simply takes input from a user prompt in the terminal. This design is why the agents are modular and we can play the game with different agents without reconfiguring the game logic. 
 
 ### AI Agent Decision making
+![image](https://github.com/saiccoumar/TicTacToe/assets/55699636/913446e6-aede-4b68-ad81-504e06c58ff4)
+Every agent uses this setup with a different "black box". Let's go over how each of make their decisions inside their "black boxes"
+
+#### RNG Agent
+Starting with the simplest option, we have the most naive approach to tic tac toe: picking a random open square.
+```
+def make_decision(board):
+        # Check for all open positions (valid choices)
+        open_positions = []
+        for i in range(0,len(board)):
+            if board[i] == " ":
+                open_positions.append(i+1)
+        
+        return random.choice(open_positions)
+```
+This approach has a very low "intelligence" but serves as a good control. It is possible to win by making random choices but with any more intelligence, an AI will be able to consistently beat the random choice agent. If the random choice agent is winning against another AI, then that AI is likely bugged and needs to be reworked. 
