@@ -358,3 +358,6 @@ With the benefit of hindsight, let's use an exhaustive search with better decisi
 
 
 ```
+
+Minimax is a very straightforward algorithm. Minimax aims to find the sequence of moves that minimize opponents benefit and maximize the agents benefit. To do this we recursively call minimize and maximize functions on each other until reaching terminal states. The terminal state values are evaluated by an evaluation function. Originally I used an evaluation function that would reward winning, penalize losing, and do nothing for a draw. Unfortunately this reward system led to a lot of states being equal in value, so I added a bigger reward for wins by fork and a bigger penalty for loss by fork. I also included alpha/beta pruning in my minimax implementation to improve efficiency. Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and ovver. This would be solved if my evaluation function was more nuanced, but minimax is already the most exhaustive algorithm I'll use in this entire project and I didn't want it to get any worse. 
+
