@@ -7,7 +7,7 @@
 
 ## Introduction
 Welcome to my Tic Tac Toe implementation! 
-This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
+This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details along with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
 
 To play Tic Tac Toe, start the server by running 
 ```
@@ -279,3 +279,82 @@ def make_decision(board, player_sign):
 Combined Rules Agent combines the rules of the previous agent as well as a new rule that looks for forks. This agent is VERY strong. Many of the rules compliment each other; corner agent had an issue where it would never pick the center and lose, but with fork and one-step before the corners and center rules after, that vulnerability is covered. The one-step struggled with getting outplayed by forks but the forking logic before covers the vulnerability of that move. Combined Rules performed well against every other bot, but struggled against humans. Humans can pick up on the rules that the agent was using and exploit them very quickly. Tic Tac Toe is a "solved" game so it's possible to make rules to ALWAYS win, but if those rules aren't used then a rules based agent will always be vulnerable to an exploit. This is something we can try to tackle with algorithms aren't rule based.
 
 #### Monte Carlo Tree Search
+The first algorithm we'll look at is the Monte Carlo Tree Search algorithm. You've likely heard of this one before - it's famously used for chess engines and board games across the world and I made this my starting point because of it's reputation.
+```
+class MCTS():
+def search(self):
+        # Initialize board as state
+        root = State(self.board, None, self.agent_sign)
+   
+        # while True:
+        for _ in range(self.iterations):
+            self.cprint("New iteration")
+            # Select Node
+            selected_state = self.select(root)
+
+            # Expand
+            expanded_state = self.expand(selected_state)
+
+            # Simulate
+            simulation_value = self.rollout(expanded_state)
+            
+            # Back Prop
+            self.backpropagate(expanded_state, simulation_value)
+           
+
+        action = best_action(state.actions)
+        return action
+
+    def select(self, state):
+        ...
+        return state
+
+    
+    def expand(self, state):
+        ...
+        return expanded_state
+
+
+    def rollout(self, state):
+        ...
+
+    def backpropagate(self, state, value):
+        ...
+
+class State():
+    def __init__(self, board, parent, current_player) -> None:
+        self.board = board
+        # V = value of the node and it's children node's values
+        self.V = 0  
+        # n = number of simulations run from the node. Not to be confused with N, the total number of simulations run 
+        self.n = 0
+        ...
+    
+    def get_UBT(self, C, N):
+        if self.n == 0:
+            # Handling the case where n_j is zero to avoid division by zero
+            return float("inf")
+        log_argument = math.log(N) / self.n if N > 0 and self.n > 0 else 0
+        return self.V / self.n + C * math.sqrt(log_argument)
+
+
+def make_decision(board, player_sign):
+        return MCTS(board, C=0.7, iterations = 100000).search()
+```
+MCTS is a bit complicated and took the most debugging. The general intuition is pretty simple: the monte carlo search tree will add another level of depth, simulate results, and backpropagate results back to previous states. If it reaches the all terminal cases, it will continue sampling to make results more accurate. The benefit of this is that you can run it for however long you want and ALWAYS get a result WITHOUT a complete exhaustive tree search. If you only have resources for 5 iterations, you can only expand 5 states and still get a result. If you have resources for 1,000,000 iterations it will give you a result. This is better than exhaustive search algorithms like minimax which cannot get results unless it finishes searching the entire tree which can be impossible in games like Go which has possible state spaces that are too large to compute. 
+The steps:
+1. Select a state to expand
+2. Expand the state
+3. "Rollout" the state and get the result of the simulation
+4. Backpropagate the results throughout the tree
+5. Repeat for N iterations
+The exact specifics of the selection and expansion criteria are very intricate and if you're really interested, I'd recommend examining mcts_agent.py itself. Also, be very careful with other implementations of MCTS. Many implementations will have mistakes (such as expanding the entire tree immediately or using an incorrect UBT equation) and the algorithm will still function but very poorly.
+
+Unfortunately, the MCTS algorithm is still pretty mediocre. After implementing the algorithm, I found that MCTS required more computational resources and wasn't very effective because Tic Tac Toe has such a small game state space. While it wasn't inherently bad, other agents happened to be comparable with much less resources. It consistently beat the weaker agents but was matched evenly with agents like the combined rules agent and minimax. Let's consider why this is the case with the combined rules agent. In the endgame, where there are only 1 or 2 moves left in the game, MCTS is doing thousands of simulations and making approximate heuristics whereas the Combined rules agent is exhaustively checking the states and deterministically pick the objectively best option with the fork and one-step rules. This is unique to Tic Tac Toe, because the game is so simple and is considered "solved" but in a game like Chess or Go, rule agents and exhaustive searches cannot generalize such a large game state space as well as MCTS. 
+
+#### Minimax
+With the benefit of hindsight, let's use an exhaustive search with better decision making than combined rules.
+```
+
+
+```
