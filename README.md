@@ -218,3 +218,64 @@ def make_decision(board, player_sign):
 One Step Agent is the first agent that actually tries to look for opportunities to win and prevent a loss. It goes through all the possible turns that the player can make on the current board and returns a position if it can result in an immediate win. Similarly it goes through all possible turns that the opponent can make and returns a position if the opponent can result in an immediate win, thereby preventing that win. Since it goes "one step" into the future to evaluate moves, I named it the One Step Agent.
 
 One step works REALLY well. RNG struggles against it and even later algorithms that we'll cover struggle. One-step unequivocally has the best foresight of what will happen in exactly one move - even better than later algorithms we'll discuss. Unfortunately if an opponent sets up a fork more than one step into the future, One-step cannot detect it and can still lose. We'll address this with the MCTS and minimax algorithms.   
+
+#### Combined Rules Agent
+```
+def make_decision(board, player_sign):
+        # Check for all open positions (valid choices)
+        open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
+        opp_sign = "O" if player_sign == "X" else "X"
+        # Look for forks
+        # If center is empty pick     
+        if board.count(" ") == 8:
+            print("Pick Center")
+            return 5
+        
+        for i in open_positions:
+            board_step = board.copy()
+            board_step[i-1] = player_sign
+            # Check if the current move creates a fork
+            fork_created = False
+            for j in open_positions:
+                if j != i:
+                    board_step_fork = board_step.copy()
+                    board_step_fork[j-1] = opp_sign
+                    if TicTacToeGame.check_winner(board_step_fork, player_sign):
+                        fork_created = True
+                        break
+            if fork_created:
+                return i
+
+        # Look for wins
+        for i in open_positions:
+            board_step = board.copy()
+            board_step[i-1] = player_sign
+            # print("Future board\n-------")
+            # Corner_Agent.print_board(board_step)
+            if TicTacToeGame.check_winner(board_step, player_sign):
+                print("Win detected")
+                return i
+            
+        # Prevent losses
+        for i in open_positions:
+            board_step = board.copy()
+            board_step[i-1] = opp_sign
+            # print("Future board\n-------")
+            # Corner_Agent.print_board(board_step)
+            if TicTacToeGame.check_winner(board_step, opp_sign):
+                print("Stop opponent win")
+                return i 
+      
+        # If corners are empty pick a corner
+        corners = [i+1 for i in range(0,9,2)] 
+        if board[0] == " " or board[2] == " " or board[6] == " " or board[8] == " ":
+            print("Pick Corner")
+            return random.choice(corners) 
+
+        print("Pick random")
+        return random.choice(open_positions)
+```
+
+Combined Rules Agent combines the rules of the previous agent as well as a new rule that looks for forks. This agent is VERY strong. Many of the rules compliment each other; corner agent had an issue where it would never pick the center and lose, but with fork and one-step before the corners and center rules after, that vulnerability is covered. The one-step struggled with getting outplayed by forks but the forking logic before covers the vulnerability of that move. Combined Rules performed well against every other bot, but struggled against humans. Humans can pick up on the rules that the agent was using and exploit them very quickly. Tic Tac Toe is a "solved" game so it's possible to make rules to ALWAYS win, but if those rules aren't used then a rules based agent will always be vulnerable to an exploit. This is something we can try to tackle with algorithms aren't rule based.
+
+#### Monte Carlo Tree Search
