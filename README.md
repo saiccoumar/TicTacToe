@@ -357,10 +357,71 @@ Let's consider why this is the case with the combined rules agent. In the endgam
 #### Minimax
 With the benefit of hindsight, let's use an exhaustive search with better decision making than combined rules.
 ```
+class Minimax():
 
+    def evaluation_function_1(self, state):
+        if win:
+            return 10
+        elif loss:
+            return -10 
+        elif draw:
+            return 0
+        
+    def evaluation_function_2(self, state):
+        if win:
+            if win by fork:
+                return 20
+            return 10
+        elif loss:
+            if loss by fork:
+                return -20
+            return -10 
+        elif draw:
+            return 0
+        
+    def max_value(self, state, alpha, beta):
+        v = float("-inf")
+        if state.terminal:
+            # v = self.evaluation_function_1(state)
+            v = self.evaluation_function_1(state)       
+        for _ , successor in state.successors.items():
+            v = max(v, self.min_value(successor, alpha, beta))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)    
+        return v
+    
+    def min_value(self, state, alpha, beta):
+        v = float("inf")
+        if state.terminal:
+            # v = self.evaluation_function_1(state)
+            v = self.evaluation_function_1(state)    
+        for _ , successor in state.successors.items():
+            v = min(v, self.max_value(successor, alpha, beta))
+            if v <=  alpha:
+                return v
+            beta = min(beta, v)   
+        return v
+    
+    def search(self):
+        alpha, beta = float("-inf"), float("inf")
+        root = State(self.board, self.ai_player_sign)
+        for _, successor in root.successors.items():
+            score = self.min_value(successor, alpha, beta)
+            successor.V = score
 
+        # Collect actions with their corresponding minimax values
+        min_max_values = {key: child_state.V for key, child_state in root.successors.items()}
+        # Shuffle actions with the same minimax value to introduce randomness
+        max_actions = [action for action in min_max_values.keys() if min_max_values[action] == max(min_max_values.values())]
+        random.shuffle(max_actions)
+
+        return max(max_actions, key=lambda action: min_max_values[action])
+
+    def make_decision(board, player_sign):        
+        return Minimax(board, player_sign).search() + 1
 ```
 
 Minimax is a very straightforward algorithm. Minimax aims to find the sequence of moves that minimize opponents benefit and maximize the agents benefit. To do this we recursively call minimize and maximize functions on each other until reaching terminal states. The terminal state values are evaluated by an evaluation function. Originally I used an evaluation function that would reward winning, penalize losing, and do nothing for a draw. Unfortunately this reward system led to a lot of states being equal in value, so I added a bigger reward for wins by fork and a bigger penalty for loss by fork. I also included alpha/beta pruning in my minimax implementation to improve efficiency.
 
-Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and over. This would be solved if my evaluation function was more nuanced, but minimax is already the most exhaustive algorithm I'll use in this entire project and I didn't want it to get any worse with a complex evaluation function. 
+Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and over. This would be solved if my evaluation function was more nuanced, but minimax is already the most exhaustive algorithm I'll use in this entire project and I didn't want it to get any worse with a complex evaluation function but minimax had a bad habit of blundering some very simple moves. 
