@@ -540,5 +540,5 @@ def make_decision(board, nn_predictor):
 ```
 This approach was REALLY good. Combined Rules was flawed because it one could easily learn the rules and play around them, but a nueral network has much less interpretability. Similarly, it combined the patterns that minimax and MCTS make to make a more well rounded decision. It was also incredibly quick. While minimax and mcts require a long and resource-hungry search, neural networks have the capacity to memorize patterns and you can make decisions much faster than search trees. Loading the model often took longer than all the predictions combined. 
 
-### Conclusion
+## Conclusion
 With all the agents made and briefly tested by people and rng_client, we need more testing to evaluate how they compare against each other. Stay tuned for my medium for that! In the meantime, hopefully this covered the important implementation details. These algorithms are fundamental to classical AI and I'm hoping to apply this project towards future projects. Currently I'm working on AI for poker, which is a little more complicated than tic tac toe. Check that repository out as well!  
