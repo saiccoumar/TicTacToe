@@ -135,6 +135,8 @@ The client and every agent has this setup. The client waits for the game state o
 ![image](https://github.com/saiccoumar/TicTacToe/assets/55699636/913446e6-aede-4b68-ad81-504e06c58ff4)
 Every agent uses this setup with a different "black box". Let's go over how each of make their decisions inside their "black boxes"
 
+I recommend trying to make your own agent as well! If you check out SampleAgent.py, you can put your own logic in the function in make_decision and see how it stacks up!
+
 #### RNG Agent
 Starting with the simplest option, we have the most naive approach to tic tac toe: picking a random open square.
 ```
