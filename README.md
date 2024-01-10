@@ -9,7 +9,7 @@
 Welcome to my Tic Tac Toe implementation! 
 This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. This makes for pretty seamless setup and experimentation, so I encourage forking the repository and trying out your own agents and optimizations as well! 
 
-In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details along with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
+In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
 
 To play Tic Tac Toe, start the server by running 
 ```
@@ -30,6 +30,9 @@ can be substituted for the clients to have the automated AI play for that termin
 The start scripts automate executing these three functions. Modify them to run the commands with your desired client/agents if you'd like to save yourself a little typing while testing!
 
 ## Implementation
+### Technologies used
+This project is built ground up in python 3.11. The only dependencies you'll need are pandas and pytorch for the neural network training, but all the game logic and management is pure python. 
+
 ### Running the Game
 <p align="center">
  <img width="75%" height=auto src="https://github.com/saiccoumar/TicTacToe/assets/55699636/16ed5b25-8ed2-4822-9569-3b01a115e812">
