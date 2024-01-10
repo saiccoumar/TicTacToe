@@ -305,21 +305,7 @@ def search(self):
         action = best_action(state.actions)
         return action
 
-    def select(self, state):
-        ...
-        return state
-
-    
-    def expand(self, state):
-        ...
-        return expanded_state
-
-
-    def rollout(self, state):
-        ...
-
-    def backpropagate(self, state, value):
-        ...
+    ...
 
 class State():
     def __init__(self, board, parent, current_player) -> None:
