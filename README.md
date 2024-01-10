@@ -35,7 +35,7 @@ The start scripts automate executing these three functions. Modify them to run t
  <img width="75%" height=auto src="https://github.com/saiccoumar/TicTacToe/assets/55699636/16ed5b25-8ed2-4822-9569-3b01a115e812">
 </p>
 
-#### Server
+### Server
 
 ```
 class Server:
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 ```
 The server essentially manages the game. The server class waits for clients to join, accepts their connection, and begins the game when 2 players have joined. Once the game starts (the "GAME START" code & initial game state has been sent to the clients) it loops and waits for the clients response. If a client responds, it checks if their move is valid, then checks if someone has won. If someone has won, the game ends and the clients are informed that the game is over and who won. If the game isn't over, it sends the updated game state to the client and waits for the next move. Check out the implementation if you're interested in making a Client/Server game!
 
-#### Clients/Agents
+### Clients/Agents
 ```
 class Agent:
     def __init__(self):
@@ -137,7 +137,7 @@ The client and every agent has this setup. The client waits for the game state o
 ![image](https://github.com/saiccoumar/TicTacToe/assets/55699636/913446e6-aede-4b68-ad81-504e06c58ff4)
 Every agent uses this setup with a different "black box". Let's go over how each of make their decisions inside their "black boxes"
 
-#### RNG Agent
+### RNG Agent
 Starting with the simplest option, we have the most naive approach to tic tac toe: picking a random open square.
 ```
 def make_decision(board):
@@ -153,7 +153,7 @@ This approach has a very low "intelligence" but serves as a good control. It is 
 
 Let's add some degree of intelligence. The most basic AIs, rule-based agents, use pre-determined policies defined by domain experts to make generalized selections. Since tic tac toe is a "solved game", and any human with a brain can figure out a good strategy, making a viable rule-based AI is pretty easy. 
 
-#### Center Agent
+### Center Agent
 The first rule I tried was always playing the center square every single time. 
 ```
 def make_decision(board, player_sign):
@@ -169,7 +169,7 @@ def make_decision(board, player_sign):
 ```
 If the rule cannot be met, we default to random choices. Center choice wins pretty often against RNG client, but can still lose. It essentially aims to subset the game state space to all boards where the bot has played the center, which generally has a higher win rate than the entire set of all game states. This rule is pretty weak and a smart agent could still outmaneuver this pretty easily.
 
-#### Corner Agent
+### Corner Agent
 ```
 def make_decision(board, player_sign):
         opp_sign = "O" if player_sign == "X" else "X"
@@ -190,7 +190,7 @@ def make_decision(board, player_sign):
 ```
 This agent aims to take corners opposite to the opponent's corners, and take any other corners that are available. This aims to create forks, where a player has 2 winning options and the opponent can only block one leading to a win. The corner agent can win often, but is vulnerable to the possibility that an agent picks the middle three positions horizontally or vertically because the corner agent will pick corners for the first 2-4 rounds. When corner agent wins, it wins by a blowout but when it loses it loses hard. 
 
-#### One Step Agent
+### One Step Agent
 ```
 def make_decision(board, player_sign):
         # Check for all open positions (valid choices)
@@ -221,7 +221,7 @@ One Step Agent is the first agent that actually tries to look for opportunities 
 
 One step works REALLY well. RNG struggles against it and even later algorithms that we'll cover struggle. One-step unequivocally has the best foresight of what will happen in exactly one move - even better than later algorithms we'll discuss. Unfortunately if an opponent sets up a fork more than one step into the future, One-step cannot detect it and can still lose. We'll address this with the MCTS and minimax algorithms.   
 
-#### Combined Rules Agent
+### Combined Rules Agent
 ```
 def make_decision(board, player_sign):
         # Check for all open positions (valid choices)
@@ -280,7 +280,7 @@ def make_decision(board, player_sign):
 
 Combined Rules Agent combines the rules of the previous agent as well as a new rule that looks for forks. This agent is VERY strong. Many of the rules compliment each other; corner agent had an issue where it would never pick the center and lose, but with fork and one-step before the corners and center rules after, that vulnerability is covered. The one-step struggled with getting outplayed by forks but the forking logic before covers the vulnerability of that move. Combined Rules performed well against every other bot, but struggled against humans. Humans can pick up on the rules that the agent was using and exploit them very quickly. Tic Tac Toe is a "solved" game so it's possible to make rules to ALWAYS win, but if those rules aren't used then a rules based agent will always be vulnerable to an exploit. This is something we can try to tackle with algorithms aren't rule based.
 
-#### Monte Carlo Tree Search
+### Monte Carlo Tree Search
 The first algorithm we'll look at is the Monte Carlo Tree Search algorithm. You've likely heard of this one before - it's famously used for chess engines and board games across the world and I made this my starting point because of it's reputation.
 ```
 class MCTS():
@@ -342,7 +342,7 @@ Unfortunately, the MCTS algorithm is still pretty mediocre. After implementing t
 
 Let's consider why this is the case with the combined rules agent. In the endgame, where there are only 1 or 2 moves left in the game, MCTS is doing thousands of simulations and making approximate heuristics whereas the Combined rules agent is exhaustively checking the states and deterministically pick the objectively best option with the fork and one-step rules. This is unique to Tic Tac Toe, because the game is so simple and is considered "solved" but in a game like Chess or Go, rule agents and exhaustive searches cannot generalize such a large game state space as well as MCTS. 
 
-#### Minimax
+### Minimax
 With the benefit of hindsight, let's use an exhaustive search with better decision making than combined rules.
 ```
 class Minimax():
@@ -416,7 +416,7 @@ Minimax also had an issue where it would keep picking the exact same state at th
 
 Let's kick it up a notch with neural networks.
 
-#### Prediciting Wins Neural Network
+### Prediciting Wins Neural Network
 My first approach to this was to look for a public tic tac toe dataset and work from there. I found the 1991 UCI dataset to be the most popular dataset: https://archive.ics.uci.edu/dataset/101/tic+tac+toe+endgame. This dataset has an endgame board state and a value associated that tells you whether the game is "positive" (player is winning) or "negative". 
 Training: 
 ```
@@ -489,7 +489,7 @@ My approach was to train a neural network to predict winning boards and pick chi
 
 This agent was undoubtedly a flop. The data sucks, the usage of the model is underwhelming, and I don't think the hyperparameters were optimized well either. This was discouraging but seeing the potential of an NN I came up with the next idea.
 
-#### Predict Position Neural Network
+### Predict Position Neural Network
 With this approach I aimed to directly predict what the next position to play would be. I generated data with generate_data.py and then used Combined Rules, Minimax, and MCTS to evaluate what they would decide to play with those random board states. I then trained the nueral network on that data to print a position to play
 Train:
 ```
