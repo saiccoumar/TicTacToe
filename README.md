@@ -7,7 +7,9 @@
 
 ## Introduction
 Welcome to my Tic Tac Toe implementation! 
-This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details along with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
+This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. This makes for pretty seamless setup and experimentation, so I encourage forking the repository and trying out your own agents and optimizations as well! 
+
+In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details along with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
 
 To play Tic Tac Toe, start the server by running 
 ```
@@ -134,8 +136,6 @@ The client and every agent has this setup. The client waits for the game state o
 ### AI Agent Decision making
 ![image](https://github.com/saiccoumar/TicTacToe/assets/55699636/913446e6-aede-4b68-ad81-504e06c58ff4)
 Every agent uses this setup with a different "black box". Let's go over how each of make their decisions inside their "black boxes"
-
-I recommend trying to make your own agent as well! If you check out SampleAgent.py, you can put your own logic in the function in make_decision and see how it stacks up!
 
 #### RNG Agent
 Starting with the simplest option, we have the most naive approach to tic tac toe: picking a random open square.
@@ -415,3 +415,130 @@ Minimax is a very straightforward algorithm. Minimax aims to find the sequence o
 Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and over. This would be solved if my evaluation function was more nuanced, but minimax is already the most exhaustive algorithm I'll use in this entire project and I didn't want it to get any worse with a complex evaluation function but my minimax had a bad habit of blundering some very simple moves. 
 
 Let's kick it up a notch with neural networks.
+
+#### Prediciting Wins Neural Network
+My first approach to this was to look for a public tic tac toe dataset and work from there. I found the 1991 UCI dataset to be the most popular dataset: https://archive.ics.uci.edu/dataset/101/tic+tac+toe+endgame. This dataset has an endgame board state and a value associated that tells you whether the game is "positive" (player is winning) or "negative". 
+Training: 
+```
+class TicTacToeModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(TicTacToeModel, self).__init__()
+        self.fc1 = nn.Linear(input_size, 256)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(256, output_size)
+        self.tanh = nn.Tanh()
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.fc2(x)
+        x = self.tanh(x)
+        return x
+
+X = *load data*
+y = *load data*
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = TicTacToeModel(input_size, output_size).to(device)
+
+# Define loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+# Training loop
+num_epochs = 10000
+for epoch in range(num_epochs):
+    # Forward pass
+    outputs = model(X_train)
+    loss = criterion(outputs, y_train)
+ 
+    # Backward and optimize
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+```
+Predict:
+```
+def make_decision(board, player_sign, nn_predictor):
+   # Check for all open positions (valid choices)
+   open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
+   if len(open_positions) > 4:
+       # return OneStepAgent.make_decision(board, player_sign)
+       # return CombinedRulesAgent.make_decision(board, player_sign)
+       return OneStepAgent.make_decision(board, player_sign)
+
+   predicted_scores = {}
+   for i in open_positions:
+       future_board = board.copy()
+       future_board[i-1] = player_sign
+       predicted_scores[i] = nn_predictor.predict(future_board) 
+   choices = [key for key, value in predicted_scores.items() if value == 1]
+   print("Endgame Detected.")
+
+   if len(predicted_scores.items())>0:
+       print(predicted_scores)
+       return max(predicted_scores, key=predicted_scores.get)
+
+   print("NN failed to yield a valid choice")
+   return random.choice(open_positions)
+```
+
+My approach was to train a neural network to predict winning boards and pick children boards which were indicative of winning boards. Unfortunately there's some glaring issues with this that you'll see the minute you actually use this agent. 
+1. The dataset only has endgames. That means for the first 6 moves, this model doesn't have the right knowledge to make good predictions. To handle this I had other agents make decisions until the end where the NN would take over and make predictions.
+2. Simpler algorithms perform better towards the end of the game. Rule based agents like one-step and searches like minimax and mcts don't require nearly as many resources to fully play out a game. Therefore, the NN's choice is redundant and underperforms
+3. Endgame is the worst time to make game defining moves. Once you're there, you're already likely to lose or win so neither choice will be particularly better than the other. This both regularly predicts both options as failing options, with one slightly better than the other.
+
+This agent was undoubtedly a flop. The data sucks, the usage of the model is underwhelming, and I don't think the hyperparameters were optimized well either. This was discouraging but seeing the potential of an NN I came up with the next idea.
+
+#### Predict Position Neural Network
+With this approach I aimed to directly predict what the next position to play would be. I generated data with generate_data.py and then used Combined Rules, Minimax, and MCTS to evaluate what they would decide to play with those random board states. I then trained the nueral network on that data to print a position to play
+Train:
+```
+class TicTacToeModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(TicTacToeModel, self).__init__()
+        self.fc1 = nn.Linear(input_size, 256)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(256, output_size)
+        self.tanh = nn.Tanh()
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu1(x)
+        x = self.fc2(x)
+        x = self.tanh(x)
+        return x
+
+X = *load data*
+y = *load data*
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+# Training loop
+num_epochs = 10000
+for epoch in range(num_epochs):
+    # Forward pass
+    outputs = model(X_train)
+    loss = criterion(outputs, y_train)
+
+    # Backward and optimize
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+```
+Predict:
+```
+def make_decision(board, nn_predictor):
+    # Check for all open positions (valid choices)
+    open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
+    predicted_value = nn_predictor.predict(board) + 1
+    if predicted_value in open_positions:
+        return predicted_value 
+    print("NN failed to yield a valid choice")
+    return random.choice(open_positions)
+```
+This approach was REALLY good. Combined Rules was flawed because it one could easily learn the rules and play around them, but a nueral network has much less interpretability. Similarly, it combined the patterns that minimax and MCTS make to make a more well rounded decision. It was also incredibly quick. While minimax and mcts require a long and resource-hungry search, neural networks have the capacity to memorize patterns and you can make decisions much faster than search trees. Loading the model often took longer than all the predictions combined. 
+
+### Conclusion
+With all the agents made and briefly tested by people and rng_client, we need more testing to evaluate how they compare against each other. Stay tuned for my medium for that! In the meantime, hopefully this covered the important implementation details. These algorithms are fundamental to classical AI and I'm hoping to apply this project towards future projects. Currently I'm working on AI for poker, which is a little more complicated than tic tac toe. Check that repository out as well!  
