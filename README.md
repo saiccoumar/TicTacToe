@@ -30,9 +30,6 @@ can be substituted for the clients to have the automated AI play for that termin
 The start scripts automate executing these three functions. Modify them to run the commands with your desired client/agents if you'd like to save yourself a little typing while testing!
 
 ## Implementation
-### Technologies used
-This project is built ground up in python 3.11. The only dependencies you'll need are pandas and pytorch for the neural network training, but all the game logic and management is pure python. 
-
 ### Running the Game
 <p align="center">
  <img width="75%" height=auto src="https://github.com/saiccoumar/TicTacToe/assets/55699636/16ed5b25-8ed2-4822-9569-3b01a115e812">
