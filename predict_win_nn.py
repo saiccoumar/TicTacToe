@@ -24,6 +24,7 @@ class NeuralNetworkPredictor():
             
             # Make prediction
             prediction = self.model(new_board_tensor)
+            # print(prediction)
             return prediction
             
 
@@ -121,7 +122,7 @@ class NNWinPredictorAgent:
         if len(open_positions) > 4:
             # return OneStepAgent.make_decision(board, player_sign)
             # return CombinedRulesAgent.make_decision(board, player_sign)
-            return MinimaxAgent.make_decision(board, player_sign)
+            return OneStepAgent.make_decision(board, player_sign)
 
         predicted_scores = {}
         for i in open_positions:

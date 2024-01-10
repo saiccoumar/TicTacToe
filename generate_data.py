@@ -59,7 +59,7 @@ def generate_minimax_data():
             # Write the current game state and decision to the CSV file
             writer.writerow({'board': ''.join(board), 'decision': decision})
 def generate_mcts_data():
-    for _ in range(10000 - 8913):
+    for _ in range(10000):
         # Generate a random game state
         board, current_player = generate_game_state()
         print(_)
@@ -93,7 +93,7 @@ def generate_rule_data():
         decision = CombinedRulesAgent.make_decision(board, current_player)
 
         # Create or open the CSV file
-        with open('tic_tac_toe_records_combined_rules.csv', mode='a', newline='') as csvfile:
+        with open('tic_tac_toe_records_minimax.csv', mode='a', newline='') as csvfile:
             fieldnames = ['board', 'decision']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -105,4 +105,4 @@ def generate_rule_data():
             writer.writerow({'board': ''.join(board), 'decision': decision})
 
 if __name__ == "__main__":
-    generate_mcts_data()
+    generate_rule_data()

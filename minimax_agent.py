@@ -7,7 +7,7 @@ from tictactoe import TicTacToeGame
 
 
 class State():
-    def __init__(self, board, current_player, terminal = False) -> None:
+    def __init__(self, board, current_player) -> None:
         self.board = board
         opp_sign = "O" if current_player == "X" else "X"
         self.current_player = current_player
@@ -18,52 +18,57 @@ class State():
             if self.board[i] == " ":
                 future_board = self.board.copy()
                 future_board[i] = current_player   
-                self.successors[i] = State(future_board, opp_sign, terminal=TicTacToeGame.game_is_over(future_board))
+                self.successors[i] = State(future_board, opp_sign)
         # V = value of the node based on it's children node's valuesi
         self.V = None
-
-        self.terminal = terminal
-
-        if len(self.successors.items()) == 0:
-            self.terminal = True
         
-class MiniMax():
-    def __init__(self, board, current_player) -> None:
+class Minimax():
+    def __init__(self, board, ai_player_sign) -> None:
         self.board = board
-        self.current_player = current_player
+        self.ai_player_sign = ai_player_sign
 
-    def max_value(self, state, alpha, beta, current_player):
-        opp_sign = "O" if current_player == "X" else "X"
+    def evaluation_function_1(self, state):
+        if TicTacToeGame.check_winner(state.board, self.ai_player_sign):
+            return 10
+        elif TicTacToeGame.check_loser(state.board, self.ai_player_sign):
+            return -10 
+        elif TicTacToeGame.check_draw(state.board):
+            return 0
+        
+    def evaluation_function_2(self, state):
+        if TicTacToeGame.check_winner(state.board, self.ai_player_sign):
+            if TicTacToeGame.detect_fork(state.board, self.ai_player_sign):
+                return 20
+            return 10
+        elif TicTacToeGame.check_loser(state.board, self.ai_player_sign):
+            if TicTacToeGame.detect_fork(state.board, "O" if self.ai_player_sign == "X" else "X"):
+                return -20
+            return -10 
+        elif TicTacToeGame.check_draw(state.board):
+            return 0
+        
+    def max_value(self, state, alpha, beta):
         v = float("-inf")
         if state.terminal:
-            if TicTacToeGame.check_winner(state.board, current_player):
-                v = 10
-            elif TicTacToeGame.check_loser(state.board, current_player):
-                v = -10 
-            elif TicTacToeGame.check_draw(state.board):
-                v = 0
+            # v = self.evaluation_function_1(state)
+            v = self.evaluation_function_1(state)
         
         for _ , successor in state.successors.items():
-            v = max(v, self.min_value(successor, alpha, beta, opp_sign))
+            v = max(v, self.min_value(successor, alpha, beta))
             if v >= beta:
                 return v
             alpha = max(alpha, v)
         
         return v
     
-    def min_value(self, state, alpha, beta, current_player):
-        opp_sign = "O" if current_player == "X" else "X"
+    def min_value(self, state, alpha, beta):
         v = float("inf")
         if state.terminal:
-            if TicTacToeGame.check_winner(state.board, current_player):
-                v = 10
-            elif TicTacToeGame.check_loser(state.board, current_player):
-                v = -10 
-            elif TicTacToeGame.check_draw(state.board):
-                v = 0
+            # v = self.evaluation_function_1(state)
+            v = self.evaluation_function_1(state)
         
         for _ , successor in state.successors.items():
-            v = min(v, self.max_value(successor, alpha, beta, opp_sign))
+            v = min(v, self.max_value(successor, alpha, beta))
             if v <=  alpha:
                 return v
             beta = min(beta, v)
@@ -72,27 +77,22 @@ class MiniMax():
     
     def search(self):
         alpha, beta = float("-inf"), float("inf")
-        root = State(self.board, self.current_player)
+        root = State(self.board, self.ai_player_sign)
 
-        for _ , successor in root.successors.items():
-            score = self.min_value(successor, alpha, beta, "O" if self.current_player == "X" else "X")
+        for _, successor in root.successors.items():
+            score = self.min_value(successor, alpha, beta)
             successor.V = score
-        
+
+        # Collect actions with their corresponding minimax values
         min_max_values = {key: child_state.V for key, child_state in root.successors.items()}
-        print(f"Minimax Values: {min_max_values}")
-        return max(root.successors, key=lambda action: root.successors[action].V)
 
+        # Shuffle actions with the same minimax value to introduce randomness
+        max_actions = [action for action in min_max_values.keys() if min_max_values[action] == max(min_max_values.values())]
+        random.shuffle(max_actions)
 
+        # print(f"Minimax Values: {min_max_values}")
+        return max(max_actions, key=lambda action: min_max_values[action])
 
-
-            
-
-            
-
-    
-        
-
-        
 
 
 class MinimaxAgent:
@@ -183,35 +183,8 @@ class MinimaxAgent:
     # Logic to choose which position to pick
     @staticmethod
     def make_decision(board, player_sign):
-        # Check for all open positions (valid choices)
-        open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
         
-        # Look for wins
-        for i in open_positions:
-            board_step = board.copy()
-            board_step[i-1] = player_sign
-            # print("Future board\n-------")
-            # Corner_Agent.print_board(board_step)
-            if TicTacToeGame.check_winner(board_step, player_sign):
-                print("Win detected")
-                return i
-            
-        # Prevent losses
-        for i in open_positions:
-            board_step = board.copy()
-            opp_sign = "O" if player_sign == "X" else "X"
-
-            board_step[i-1] = opp_sign
-            # print("Future board\n-------")
-            # Corner_Agent.print_board(board_step)
-            if TicTacToeGame.check_winner(board_step, opp_sign):
-                print("Stop opponent win")
-                return i 
-        
-        
-
-        print("Pick random")
-        return random.choice(open_positions)
+        return Minimax(board, player_sign).search() + 1
 
 if __name__ == "__main__":
     # Create a AI client that plays the game using RNG logic. When the game is over, close it's connection to the port.

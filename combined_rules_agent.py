@@ -97,11 +97,7 @@ class CombinedRulesAgent:
         open_positions = [i + 1 for i in range(0,len(board)) if board[i] == " "]
         opp_sign = "O" if player_sign == "X" else "X"
         # Look for forks
-        # If center is empty pick     
-        if board.count(" ") == 8:
-            print("Pick Center")
-            return 5
-        
+              
         for i in open_positions:
             board_step = board.copy()
             board_step[i-1] = player_sign
@@ -147,7 +143,10 @@ class CombinedRulesAgent:
             print("Pick Corner")
             return random.choice(corners) 
         
-        
+        # If center is empty pick     
+        if board.count(" ") == 8:
+            print("Pick Center")
+            return 5
         
 
         print("Pick random")

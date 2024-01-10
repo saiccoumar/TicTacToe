@@ -98,11 +98,71 @@ class TicTacToeGame:
         char = "X"
         return (TicTacToeGame.check_winner(board,char) or TicTacToeGame.check_loser(board, char) or TicTacToeGame.check_draw(board))
     
+    @staticmethod
+    def detect_fork(board, player_sign):
+        opp_sign = "O" if player_sign == "X" else "X"
+        # Iterate through each position on the board
+        for i in range(len(board)):
+            if board[i] == opp_sign:
+                # Temporarily place the player's sign in the empty position
+                past_board = board.copy()
+                past_board[i] = " "
+                # Check if the player has won from this position
+                if TicTacToeGame.detect_win(past_board, player_sign):
+                    return True
+        # No fork detected
+        return False
+    
+    @staticmethod
+    def detect_win(board, player_sign):
+        # Check rows
+        for row in range(0, 9, 3):
+            if board[row:row+3].count(player_sign) == 2 and board[row:row+3].count(' ') == 1:
+                return True
+
+        # Check columns
+        for col in range(3):
+            if board[col] == board[col+3] == player_sign and board[col+6] == ' ':
+                return True
+            elif board[col] == board[col+6] == player_sign and board[col+3] == ' ':
+                return True
+            elif board[col+3] == board[col+6] == player_sign and board[col] == ' ':
+                return True
+
+        # Check diagonals
+        if board[0] == board[4] == player_sign and board[8] == ' ':
+            return True
+        elif board[0] == board[8] == player_sign and board[4] == ' ':
+            return True
+        elif board[4] == board[8] == player_sign and board[0] == ' ':
+            return True
+        elif board[2] == board[4] == player_sign and board[6] == ' ':
+            return True
+        elif board[2] == board[6] == player_sign and board[4] == ' ':
+            return True
+        elif board[4] == board[6] == player_sign and board[2] == ' ':
+            return True
+
+        return False
+
+   
+
 if __name__ == "__main__":
     board = [' ', 'X', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
     print(TicTacToeGame.check_winner(board,"X"))
     print(TicTacToeGame.check_loser(board,"X"))
     print(TicTacToeGame.check_draw(board))
     print(TicTacToeGame.game_is_over(board))
+
+    board = ["O", "O", "O",
+        "X"," X", " ",
+        "O","X"," "] 
+    player_sign = "O"
+        # Example Usage:
+    # Assuming 'board' is a one-dimensional array and 'player_sign' is the sign of the player who lost
+    if TicTacToeGame.detect_fork(board, player_sign):
+        print(f"Player {player_sign} won due to a fork.")
+    else:
+        print(f"No fork detected for Player {player_sign}.")
 
     
