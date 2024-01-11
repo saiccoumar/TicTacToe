@@ -278,7 +278,7 @@ def make_decision(board, player_sign):
         return random.choice(open_positions)
 ```
 
-Combined Rules Agent combines the rules of the previous agent as well as a new rule that looks for forks. This agent is VERY strong. Many of the rules compliment each other; corner agent had an issue where it would never pick the center and lose, but with fork and one-step before the corners and center rules after, that vulnerability is covered. The one-step struggled with getting outplayed by forks but the forking logic before covers the vulnerability of that move. Combined Rules performed well against every other bot, but struggled against humans. Humans can pick up on the rules that the agent was using and exploit them very quickly. Tic Tac Toe is a "solved" game so it's possible to make rules to ALWAYS win, but if those rules aren't used then a rules based agent will always be vulnerable to an exploit. This is something we can try to tackle with algorithms aren't rule based.
+Combined Rules Agent combines the rules of the previous agent as well as a new rule that looks for forks. This agent is VERY strong. Many of the rules compliment each other; corner agent had an issue where it would never pick the center and lose, but with fork and one-step before the corners and center rules after, that vulnerability is covered. The one-step struggled with getting outplayed by forks but the forking logic before covers the vulnerability of that move. Combined Rules performed well against every other bot, but struggled against humans. Humans can pick up on the rules that the agent was using and exploit them very quickly. Tic Tac Toe is a "solved" game so it's possible to make rules to ALWAYS win, but if those rules aren't used then a rules based agent will always be vulnerable to an exploit. This is something we can try to tackle with algorithms aren't built on (simple) knowledge based systems.
 
 ### 6. Monte Carlo Tree Search
 The first algorithm we'll look at is the Monte Carlo Tree Search algorithm. You've likely heard of this one before - it's famously used for chess engines and board games across the world and I made this my starting point because of it's reputation.
@@ -371,7 +371,8 @@ class Minimax():
         v = float("-inf")
         if state.terminal:
             # v = self.evaluation_function_1(state)
-            v = self.evaluation_function_1(state)       
+            v = self.evaluation_function_1(state)
+            return v
         for _ , successor in state.successors.items():
             v = max(v, self.min_value(successor, alpha, beta))
             if v >= beta:
@@ -383,7 +384,8 @@ class Minimax():
         v = float("inf")
         if state.terminal:
             # v = self.evaluation_function_1(state)
-            v = self.evaluation_function_1(state)    
+            v = self.evaluation_function_1(state)
+            return v    
         for _ , successor in state.successors.items():
             v = min(v, self.max_value(successor, alpha, beta))
             if v <=  alpha:
@@ -412,9 +414,11 @@ class Minimax():
 
 Minimax is a very straightforward algorithm. Minimax aims to find the sequence of moves that minimize opponents benefit and maximize the agents benefit. To do this we recursively call minimize and maximize functions on each other until reaching terminal states. The terminal state values are evaluated by an evaluation function. Originally I used an evaluation function that would reward winning, penalize losing, and do nothing for a draw. Unfortunately this reward system led to a lot of states being equal in value, so I added a bigger reward for wins by fork and a bigger penalty for loss by fork. I also included alpha/beta pruning in my minimax implementation to improve efficiency.
 
-Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and over. This would be solved if my evaluation function was more nuanced, but minimax is already the most exhaustive algorithm I'll use in this entire project and I didn't want it to get any worse with a complex evaluation function but my minimax had a bad habit of blundering some very simple moves. 
+Minimax also had an issue where it would keep picking the exact same state at the beginning and leading to certain outcomes every time against rule based agents. This is because when there are tied values the max() function always picks the first instance. By using random choices to break ties, this makes it possible to win and lose in different ways rather than lose the same time over and over. This would be solved if my evaluation function was more nuanced as well. 
 
-Let's kick it up a notch with neural networks.
+Minimax had the same strengths that combined rules agent had, but without being so predictable. Against humans, it actually provided a challenge and could not be exploited for vulnerabilities. It was also relatively inefficient because the state space it needs to search through isn't so large. 
+
+Calculations tended to still be a little slow in the early moves. Let's kick it up a notch with neural networks.
 
 ### 8. Prediciting Wins Neural Network
 My first approach to this was to look for a public tic tac toe dataset and work from there. I found the 1991 UCI dataset to be the most popular dataset: https://archive.ics.uci.edu/dataset/101/tic+tac+toe+endgame. This dataset has an endgame board state and a value associated that tells you whether the game is "positive" (player is winning) or "negative". 
