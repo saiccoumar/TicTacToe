@@ -105,4 +105,4 @@ def generate_rule_data():
             writer.writerow({'board': ''.join(board), 'decision': decision})
 
 if __name__ == "__main__":
-    generate_rule_data()
+    generate_minimax_data()

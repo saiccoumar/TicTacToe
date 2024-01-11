@@ -51,7 +51,8 @@ class Minimax():
         v = float("-inf")
         if state.terminal:
             # v = self.evaluation_function_1(state)
-            v = self.evaluation_function_1(state)
+            v = self.evaluation_function_2(state)
+            return v
         
         for _ , successor in state.successors.items():
             v = max(v, self.min_value(successor, alpha, beta))
@@ -65,7 +66,8 @@ class Minimax():
         v = float("inf")
         if state.terminal:
             # v = self.evaluation_function_1(state)
-            v = self.evaluation_function_1(state)
+            v = self.evaluation_function_2(state)
+            return v
         
         for _ , successor in state.successors.items():
             v = min(v, self.max_value(successor, alpha, beta))
@@ -90,7 +92,7 @@ class Minimax():
         max_actions = [action for action in min_max_values.keys() if min_max_values[action] == max(min_max_values.values())]
         random.shuffle(max_actions)
 
-        # print(f"Minimax Values: {min_max_values}")
+        print(f"Minimax Values: {min_max_values}")
         return max(max_actions, key=lambda action: min_max_values[action])
 
 

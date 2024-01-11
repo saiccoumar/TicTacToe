@@ -27,7 +27,7 @@ class State():
     def __str__(self) -> str:
         return f"State(board={self.board}, current_player={self.current_player}, terminal={self.terminal}, V={self.V}, n={self.n})"
     
-    def get_UBT(self, C, N):
+    def get_UCB(self, C, N):
         if self.n == 0:
             # Handling the case where n_j is zero to avoid division by zero
             return float("inf")
@@ -68,8 +68,8 @@ class MCTS():
             self.backpropagate(expanded_state, simulation_value)
             self.cprint("Backprogated")
 
-        action , _ = max(root.children.items(), key = lambda x: x[1].get_UBT(self.C, self.N))
-        ubt_values_dict = {key: child_state.get_UBT(self.C, self.N) for key, child_state in root.children.items()}
+        action , _ = max(root.children.items(), key = lambda x: x[1].get_UCB(self.C, self.N))
+        ubt_values_dict = {key: child_state.get_UCB(self.C, self.N) for key, child_state in root.children.items()}
         self.cprint(f"UBT Values: {ubt_values_dict}")
 
         return action
@@ -83,7 +83,7 @@ class MCTS():
             if not non_terminal_children:
                 return state
 
-            best_child = max(non_terminal_children, key=lambda x: x.get_UBT(self.C, self.N))
+            best_child = max(non_terminal_children, key=lambda x: x.get_UCB(self.C, self.N))
             return self.select(best_child)
 
     

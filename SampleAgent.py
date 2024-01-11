@@ -4,7 +4,7 @@ import socket
 import json
 import random 
 
-class RNGAgent:
+class SampleAgent:
     def __init__(self):
         # initialize cliennt socket with localhost ip address on port 5555
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -92,17 +92,24 @@ class RNGAgent:
     # Logic to choose which position to pick
     @staticmethod
     def make_decision(board):
-        # Check for all open positions (valid choices)
-        open_positions = []
-        for i in range(0,len(board)):
-            if board[i] == " ":
-                # Board is indexed 1-9, who thought that would be a good idea...
-                open_positions.append(i+1)
-        # Pick a random spot
-        return random.choice(open_positions)
+        # TODO: YOUR LOGIC HERE 
+        """ Board is an array of strings """
+
+
+        """
+            Return decision 1-9 correlating to position on the board
+            1 | 2 | 3 
+            ---------
+            4 | 5 | 6 
+            ---------
+            7 | 8 | 9 
+            ---------
+        """
+
+        return decision
 
 if __name__ == "__main__":
-    # Create a AI client that plays the game using RNG logic. When the game is over, close it's connection to the port.
-    client = RNGAgent()
+    # Create a AI client that plays the game using logic. When the game is over, close it's connection to the port.
+    client = SampleAgent()
     client.play_game()
     client.close_connection()

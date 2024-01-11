@@ -56,7 +56,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=0.01)
 
     # Training loop
-    num_epochs = 10000
+    num_epochs = 5000
     for epoch in range(num_epochs):
         # Forward pass
         outputs = model(X_train)
