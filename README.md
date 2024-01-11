@@ -484,13 +484,14 @@ def make_decision(board, player_sign, nn_predictor):
 
 My approach was to train a neural network to predict winning boards and pick children boards which were indicative of winning boards. Unfortunately there's some glaring issues with this that you'll see the minute you actually use this agent. 
 1. The dataset only has endgames. That means for the first 6 moves, this model doesn't have the right knowledge to make good predictions. To handle this I had other agents make decisions until the end where the NN would take over and make predictions.
-2. Simpler algorithms perform better towards the end of the game. Rule based agents like one-step and searches like minimax and mcts don't require nearly as many resources to fully play out a game. Therefore, the NN's choice is redundant and underperforms
+2. Simpler algorithms perform better towards the end of the game. Rule based agents like one-step and searches like minimax and mcts don't require nearly as many resources to fully play out a game. Therefore, the NN's choice is redundant and underperforms.
 3. Endgame is the worst time to make game defining moves. Once you're there, you're already likely to lose or win so neither choice will be particularly better than the other. This both regularly predicts both options as failing options, with one slightly better than the other.
 
 This agent was undoubtedly a flop. The data sucks, the usage of the model is underwhelming, and I don't think the hyperparameters were optimized well either. This was discouraging but seeing the potential of an NN I came up with the next idea.
 
 ### 9. Predict Position Neural Network
 With this approach I aimed to directly predict what the next position to play would be. I generated data with generate_data.py and then used Combined Rules, Minimax, and MCTS to evaluate what they would decide to play with those random board states. I then trained the nueral network on that data to print a position to play
+
 Train:
 ```
 class TicTacToeModel(nn.Module):
