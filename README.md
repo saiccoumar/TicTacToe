@@ -9,7 +9,9 @@
 Welcome to my Tic Tac Toe implementation! 
 This project was actually a proof of concept for future projects with the simplest game I could possibly use. Using a simple game serves as a reference for more complicated algorithms that use the same algorithms (like poker!) and hopefully will make working on those projects easier. *The objective is not to optimize for the best performance, but to give myself a framework for utilizing different algorithms and being able to compare them in simulated environments.* The idea here is to make an OOP Client/Server python version of the game so that AI Clients can be easily implemented and participate in the game like player clients without needing to change the game logic every time we test a new algorithm. This makes for pretty seamless setup and experimentation, so I encourage forking the repository and trying out your own agents and optimizations as well! 
 
-In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details with pseudocode for the algorithms. In my medium article, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
+In this project, I implemented TicTacToe, and then experimented with different AIs that would play the game - either against each other or against the player. In this README I'll cover how to use this project as well as some of the implementation details with pseudocode for the algorithms. In my medium articles, I'll compare performances and explain more about the theory behind the AI and how each algorithm stacked up against AI. 
+
+Check out the theory here! https://medium.com/@saicoumar/applying-ai-to-tic-tac-toe-7f3634402ea2
 
 To play Tic Tac Toe, start the server by running 
 ```
