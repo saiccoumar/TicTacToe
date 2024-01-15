@@ -13,6 +13,8 @@ In this project, I implemented TicTacToe, and then experimented with different A
 
 Check out the theory here! https://medium.com/@saicoumar/applying-ai-to-tic-tac-toe-7f3634402ea2
 
+Check out the evaluation here! https://medium.com/@saicoumar/tic-tac-toe-ai-tournament-analyzing-strategies-and-showcasing-superiority-2b05232eb572
+
 To play Tic Tac Toe, start the server by running 
 ```
 python server.py
